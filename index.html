@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Car Game</title>
+    <style>
+        /* General Styles */
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #333;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        /* Game Container */
+        #game {
+            position: relative;
+            width: 300px;
+            height: 500px;
+            background-color: #222;
+            border: 2px solid #444;
+            overflow: hidden;
+        }
+
+        /* Car */
+        #car {
+            position: absolute;
+            bottom: 10px;
+            left: 125px;
+            width: 50px;
+            height: 80px;
+            background-color: red;
+            transition: left 0.1s ease;
+        }
+
+        /* Obstacles */
+        .obstacle {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: blue;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            from { top: -50px; }
+            to { top: 500px; }
+        }
+
+        /* Power-ups */
+        .power-up {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: yellow;
+            border-radius: 50%;
+            animation: fall linear infinite;
+        }
+
+        /* Explosion Effect */
+        .explosion {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, yellow, orange, red);
+            border-radius: 50%;
+            animation: explode 0.5s ease-out;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* Game Over Screen */
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: none;
+        }
+
+        /* Start Menu */
+        #start-menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        /* Buttons */
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>MINTESNOT GAME</h1>
+    <div id="game">
+        <div id="car"></div>
+        <div id="game-over">
+            <h1>Game Over!</h1>
+            <p>Your Score: <span id="final-score">0</span></p>
+            <button id="restart">Restart</button>
+            <button id="main-menu">Main Menu</button>
+        </div>
+        <div id="start-menu">
+            <h1>Car Game</h1>
+            <button id="start">Start Game</button>
+        </div>
+    </div>
+    <div id="score">Score: 0</div>
+    <div id="high-score">High Score: 0</div>
