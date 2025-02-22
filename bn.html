@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Car Game</title>
+    <style>
+        /* General Styles */
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #333;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        /* Game Container */
+        #game {
+            position: relative;
+            width: 300px;
+            height: 500px;
+            background-color: #222;
+            border: 2px solid #444;
+            overflow: hidden;
+        }
+
+        /* Car */
+        #car {
+            position: absolute;
+            bottom: 10px;
+            left: 125px;
+            width: 50px;
+            height: 80px;
+            background-color: red;
+            transition: left 0.1s ease;
+        }
+
+        /* Obstacles */
+        .obstacle {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: blue;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            from { top: -50px; }
+            to { top: 500px; }
+        }
+
+        /* Power-ups */
+        .power-up {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: yellow;
+            border-radius: 50%;
+            animation: fall linear infinite;
+        }
+
+        /* Explosion Effect */
+        .explosion {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, yellow, orange, red);
+            border-radius: 50%;
+            animation: explode 0.5s ease-out;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* Game Over Screen */
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: none;
+        }
+
+        /* Start Menu */
+        #start-menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        /* Buttons */
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>MINTESNOT GAME</h1>
+    <div id="game">
+        <div id="car"></div>
+        <div id="game-over">
+            <h1>Game Over!</h1>
+            <p>Your Score: <span id="final-score">0</span></p>
+            <button id="restart">Restart</button>
+            <button id="main-menu">Main Menu</button>
+        </div>
+        <div id="start-menu">
+            <h1>Car Game</h1>
+            <button id="start">Start Game</button>
+        </div>
+    </div>
+    <div id="score">Score: 0</div>
+    <div id="high-score">High Score: 0</div>
+
+    <script>
+        const game = document.getElementById('game');
+        const car = document.getElementById('car');
+        const scoreDisplay = document.getElementById('score');
+        const highScoreDisplay = document.getElementById('high-score');
+        const gameOverScreen = document.getElementById('game-over');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const startMenu = document.getElementById('start-menu');
+        const startButton = document.getElementById('start');
+        const restartButton = document.getElementById('restart');
+        const mainMenuButton = document.getElementById('main-menu');
+
+        let carLeft = 125;
+        let score = 0;
+        let highScore = localStorage.getItem('highScore') || 0;
+        let obstacleSpeed = 2;
+        let obstacleInterval = 2000;
+        let gameInterval;
+        let isGameRunning = false;
+
+        highScoreDisplay.textContent = 'High Score: ' + highScore;
+
+        // Start Game
+        startButton.addEventListener('click', () => {
+            startMenu.style.display = 'none';
+            startGame();
+        });
+
+        // Restart Game
+        restartButton.addEventListener('click', () => {
+            gameOverScreen.style.display = 'none';
+            resetGame();
+            startGame();
+        });
+
+        // Main Menu
+        mainMenuButton.addEventListener('click', () => {
+            gameOverScreen.style.display = 'none';
+            startMenu.style.display = 'block';
+            resetGame();
+        });
+
+        // Move Car
+        function moveCar(event) {
+            if (event.key === 'ArrowLeft' && carLeft > 0) {
+                carLeft -= 10;
+            } else if (event.key === 'ArrowRight' && carLeft < 250) {
+                carLeft += 10;
+            }
+            car.style.left = carLeft + 'px';
+        }
+
+        // Create Obstacle
+        function createObstacle() {
+            const obstacle = document.createElement('div');
+            obstacle.classList.add('obstacle');
+            obstacle.style.left = Math.floor(Math.random() * 250) + 'px';
+            obstacle.style.animationDuration = `${2000 / obstacleSpeed}ms`;
+            game.appendChild(obstacle);
+            moveObstacle(obstacle);
+        }
+
+        // Move Obstacle
+        function moveObstacle(obstacle) {
+            const obstacleInterval = setInterval(() => {
+                if (collision(car, obstacle)) {
+                    clearInterval(obstacleInterval);
+                    gameOver();
+                }
+            }, 20);
+        }
+
+        // Collision Detection
+        function collision(car, obstacle) {
+            const carRect = car.getBoundingClientRect();
+            const obstacleRect = obstacle.getBoundingClientRect();
+            return !(
+                carRect.top > obstacleRect.bottom ||
+                carRect.bottom < obstacleRect.top ||
+                carRect.left > obstacleRect.right ||
+                carRect.right < obstacleRect.left
+            );
+        }
+
+        // Game Over
+        function gameOver() {
+            isGameRunning = false;
+            clearInterval(gameInterval);
+            finalScoreDisplay.textContent = score;
+            gameOverScreen.style.display = 'block';
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('highScore', highScore);
+                highScoreDisplay.textContent = 'High Score: ' + highScore;
+            }
+        }
+
+        // Reset Game
+        function resetGame() {
+            score = 0;
+            scoreDisplay.textContent = 'Score: 0';
+            carLeft = 125;
+            car.style.left = carLeft + 'px';
+            document.querySelectorAll('.obstacle').forEach(obstacle => obstacle.remove());
+        }
+
+        // Start Game
+        function startGame() {
+            isGameRunning = true;
+            score = 0;
+            scoreDisplay.textContent = 'Score: 0';
+            gameInterval = setInterval(() => {
+                createObstacle();
+                score++;
+                scoreDisplay.textContent = 'Score: ' + score;
+            }, obstacleInterval);
+        }
+
+        // Event Listeners
+        document.addEventListener('keydown', moveCar);
+    </script>
+</body>
+</html>
